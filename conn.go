@@ -28,7 +28,7 @@ func New(dialer Dialer, ctx context.Context) *Conn {
 		logger:    &logger{},
 	}
 
-	go c.reconnect()
+	go c.Reconnect()
 
 	return c
 }
@@ -65,12 +65,12 @@ func (c *Conn) Publisher(initFunc func(conn *amqp.Connection) (*amqp.Channel, er
 	return publisher
 }
 
-func (c *Conn) reconnect() {
+func (c *Conn) Reconnect() {
 L1:
 	for {
 		select {
 		case <-c.ctx.Done():
-			c.close()
+			c.Close()
 
 			return
 		default:
@@ -82,11 +82,11 @@ L1:
 
 			select {
 			case <-time.NewTimer(time.Second * 5).C:
-				c.logger.Debugf("try reconnect")
+				c.logger.Debugf("try Reconnect")
 
 				continue
 			case <-c.ctx.Done():
-				c.close()
+				c.Close()
 
 				return
 			}
@@ -116,7 +116,7 @@ L1:
 
 				continue L1
 			case <-c.ctx.Done():
-				c.close()
+				c.Close()
 
 				if err := conn.Close(); err != nil {
 					c.logger.Errorf("%s", err)
@@ -134,7 +134,7 @@ L1:
 	}
 }
 
-func (c *Conn) close() {
+func (c *Conn) Close() {
 	close(c.connCh)
 	close(c.closeChCh)
 }
